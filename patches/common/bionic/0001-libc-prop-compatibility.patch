@@ -1,0 +1,281 @@
+From c64f8875cadcd0f8f15d003fe7ab5b824afb091c Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Thu, 9 Feb 2017 17:08:18 -0600
+Subject: [PATCH] 0001-libc-prop-compatibility
+
+Change-Id: I5301ba3617207f59d37b89a6cc205715684e08cf
+---
+ libc/Android.mk                   |   1 -
+ libc/bionic/system_properties.cpp | 119 +++++++++++++-------------------------
+ 2 files changed, 41 insertions(+), 79 deletions(-)
+
+diff --git a/libc/Android.mk b/libc/Android.mk
+index 94f7ce6..963d0da 100644
+--- a/libc/Android.mk
++++ b/libc/Android.mk
+@@ -634,7 +634,6 @@ libc_common_cflags += \
+     -Werror=pointer-to-int-cast \
+     -Werror=int-to-pointer-cast \
+     -Werror=type-limits \
+-    -Werror \
+ 
+ ifeq ($(strip $(DEBUG_BIONIC_LIBC)),true)
+   libc_common_cflags += -DDEBUG
+diff --git a/libc/bionic/system_properties.cpp b/libc/bionic/system_properties.cpp
+index 9c992da..c5326ab 100644
+--- a/libc/bionic/system_properties.cpp
++++ b/libc/bionic/system_properties.cpp
+@@ -136,6 +136,10 @@ public:
+     atomic_uint_least32_t *serial() { return &serial_; }
+     uint32_t magic() const { return magic_; }
+     uint32_t version() const { return version_; }
++    prop_bt *root_node();
++    const prop_info *find_property(prop_bt *const trie, const char *name,
++                                   uint8_t namelen, const char *value,
++                                   uint8_t valuelen, bool alloc_if_needed);
+ 
+ private:
+     void *allocate_obj(const size_t size, uint_least32_t *const off);
+@@ -145,17 +149,11 @@ private:
+                              uint_least32_t *const off);
+     void *to_prop_obj(uint_least32_t off);
+     prop_bt *to_prop_bt(atomic_uint_least32_t *off_p);
+-    prop_info *to_prop_info(atomic_uint_least32_t *off_p);
+-
+-    prop_bt *root_node();
++    prop_info *to_prop_info(atomic_uint_least32_t *off_p); 
+ 
+     prop_bt *find_prop_bt(prop_bt *const bt, const char *name,
+                           uint8_t namelen, bool alloc_if_needed);
+ 
+-    const prop_info *find_property(prop_bt *const trie, const char *name,
+-                                   uint8_t namelen, const char *value,
+-                                   uint8_t valuelen, bool alloc_if_needed);
+-
+     bool foreach_property(prop_bt *const trie,
+                           void (*propfn)(const prop_info *pi, void *cookie),
+                           void *cookie);
+@@ -226,7 +224,14 @@ static prop_area* map_prop_area_rw(const char* filename, const char* context,
+     /* dev is a tmpfs that we can use to carve a shared workspace
+      * out of, so let's do that...
+      */
+-    const int fd = open(filename, O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC | O_EXCL, 0444);
++    const int fd = open(property_filename, O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC | O_EXCL, 0444);
++
++    if(context)
++        __libc_format_log(ANDROID_LOG_ERROR, "libc",
++                              "Meticulus: disabled fsetxattr set context (%s) for \"%s\"", context, filename);
++    if (fsetxattr_failed) {
++    	*fsetxattr_failed = false;
++    }
+ 
+     if (fd < 0) {
+         if (errno == EACCES) {
+@@ -238,25 +243,6 @@ static prop_area* map_prop_area_rw(const char* filename, const char* context,
+         return nullptr;
+     }
+ 
+-    if (context) {
+-        if (fsetxattr(fd, XATTR_NAME_SELINUX, context, strlen(context) + 1, 0) != 0) {
+-            __libc_format_log(ANDROID_LOG_ERROR, "libc",
+-                              "fsetxattr failed to set context (%s) for \"%s\"", context, filename);
+-            /*
+-             * fsetxattr() will fail during system properties tests due to selinux policy.
+-             * We do not want to create a custom policy for the tester, so we will continue in
+-             * this function but set a flag that an error has occurred.
+-             * Init, which is the only daemon that should ever call this function will abort
+-             * when this error occurs.
+-             * Otherwise, the tester will ignore it and continue, albeit without any selinux
+-             * property separation.
+-             */
+-            if (fsetxattr_failed) {
+-                *fsetxattr_failed = true;
+-            }
+-        }
+-    }
+-
+     if (ftruncate(fd, PA_SIZE) < 0) {
+         close(fd);
+         return nullptr;
+@@ -315,7 +301,7 @@ static prop_area* map_fd_ro(const int fd) {
+ }
+ 
+ static prop_area* map_prop_area(const char* filename, bool is_legacy) {
+-    int fd = open(filename, O_CLOEXEC | O_NOFOLLOW | O_RDONLY);
++    int fd = open(property_filename, O_CLOEXEC | O_NOFOLLOW | O_RDONLY);
+     bool close_fd = true;
+     if (fd == -1 && errno == ENOENT && is_legacy) {
+         /*
+@@ -761,9 +747,9 @@ bool context_node::open(bool access_rw, bool* fsetxattr_failed) {
+     }
+ 
+     if (access_rw) {
+-        pa_ = map_prop_area_rw(filename, context_, fsetxattr_failed);
++        pa_ = map_prop_area_rw(property_filename, context_, fsetxattr_failed);
+     } else {
+-        pa_ = map_prop_area(filename, false);
++        pa_ = map_prop_area(property_filename, false);
+     }
+     lock_.unlock();
+     return pa_;
+@@ -823,7 +809,7 @@ static bool map_system_property_area(bool access_rw, bool* fsetxattr_failed) {
+         __system_property_area__ =
+             map_prop_area_rw(filename, "u:object_r:properties_serial:s0", fsetxattr_failed);
+     } else {
+-        __system_property_area__ = map_prop_area(filename, false);
++        __system_property_area__ = map_prop_area(filename, true);
+     }
+     return __system_property_area__;
+ }
+@@ -1010,7 +996,6 @@ static void free_and_unmap_contexts() {
+ int __system_properties_init()
+ {
+     if (initialized) {
+-        list_foreach(contexts, [](context_node* l) { l->reset_access(); });
+         return 0;
+     }
+     if (is_dir(property_filename)) {
+@@ -1022,12 +1007,10 @@ int __system_properties_init()
+             return -1;
+         }
+     } else {
+-        __system_property_area__ = map_prop_area(property_filename, true);
++ 	__system_property_area__ = map_prop_area(property_filename, true);
+         if (!__system_property_area__) {
+             return -1;
+         }
+-        list_add(&contexts, "legacy_system_prop_area", __system_property_area__);
+-        list_add_after_len(&prefixes, "*", contexts);
+     }
+     initialized = true;
+     return 0;
+@@ -1045,22 +1028,8 @@ int __system_property_set_filename(const char *filename)
+ 
+ int __system_property_area_init()
+ {
+-    free_and_unmap_contexts();
+-    mkdir(property_filename, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+-    if (!initialize_properties()) {
+-        return -1;
+-    }
+-    bool open_failed = false;
+     bool fsetxattr_failed = false;
+-    list_foreach(contexts, [&fsetxattr_failed, &open_failed](context_node* l) {
+-        if (!l->open(true, &fsetxattr_failed)) {
+-            open_failed = true;
+-        }
+-    });
+-    if (open_failed || !map_system_property_area(true, &fsetxattr_failed)) {
+-        free_and_unmap_contexts();
+-        return -1;
+-    }
++    map_system_property_area(true, &fsetxattr_failed);
+     initialized = true;
+     return fsetxattr_failed ? -2 : 0;
+ }
+@@ -1077,15 +1046,18 @@ unsigned int __system_property_area_serial()
+ 
+ const prop_info *__system_property_find(const char *name)
+ {
+-    if (!__system_property_area__) {
+-        return nullptr;
+-    }
+-
+     if (__predict_false(compat_mode)) {
+         return __system_property_find_compat(name);
+     }
+ 
+     prop_area* pa = get_prop_area_for_name(name);
++
++    if(!pa) {
++	pa = __system_property_area__;
++	return pa->find_property(pa->root_node(), name, strlen(name), NULL, 0, false);
++
++    }
++
+     if (!pa) {
+         __libc_format_log(ANDROID_LOG_ERROR, "libc", "Access denied finding property \"%s\"", name);
+         return nullptr;
+@@ -1166,14 +1138,10 @@ int __system_property_set(const char *key, const char *value)
+ 
+ int __system_property_update(prop_info *pi, const char *value, unsigned int len)
+ {
+-    if (len >= PROP_VALUE_MAX)
+-        return -1;
+-
+-    prop_area* pa = __system_property_area__;
++    prop_area *pa = __system_property_area__;
+ 
+-    if (!pa) {
++    if (len >= PROP_VALUE_MAX)
+         return -1;
+-    }
+ 
+     uint32_t serial = atomic_load_explicit(&pi->serial, memory_order_relaxed);
+     serial |= 1;
+@@ -1201,6 +1169,7 @@ int __system_property_update(prop_info *pi, const char *value, unsigned int len)
+ int __system_property_add(const char *name, unsigned int namelen,
+             const char *value, unsigned int valuelen)
+ {
++    
+     if (namelen >= PROP_NAME_MAX)
+         return -1;
+     if (valuelen >= PROP_VALUE_MAX)
+@@ -1208,12 +1177,14 @@ int __system_property_add(const char *name, unsigned int namelen,
+     if (namelen < 1)
+         return -1;
+ 
+-    if (!__system_property_area__) {
+-        return -1;
+-    }
+-
+     prop_area* pa = get_prop_area_for_name(name);
+ 
++    if(!pa) {
++        pa = __system_property_area__;
++    	const prop_info *pi;
++	pi = pa->find_property(pa->root_node(), name, namelen, value, valuelen, true);
++    }
++
+     if (!pa) {
+         __libc_format_log(ANDROID_LOG_ERROR, "libc", "Access denied adding property \"%s\"", name);
+         return -1;
+@@ -1251,10 +1222,6 @@ unsigned int __system_property_wait_any(unsigned int serial)
+     prop_area *pa = __system_property_area__;
+     uint32_t my_serial;
+ 
+-    if (!pa) {
+-        return 0;
+-    }
+-
+     do {
+         __futex_wait(pa->serial(), serial, NULL);
+         my_serial = atomic_load_explicit(pa->serial(), memory_order_acquire);
+@@ -1278,18 +1245,14 @@ const prop_info *__system_property_find_nth(unsigned n)
+ int __system_property_foreach(void (*propfn)(const prop_info *pi, void *cookie),
+         void *cookie)
+ {
+-    if (!__system_property_area__) {
+-        return -1;
+-    }
+-
+     if (__predict_false(compat_mode)) {
+         return __system_property_foreach_compat(propfn, cookie);
+     }
+-
+-    list_foreach(contexts, [propfn, cookie](context_node* l) {
+-        if (l->check_access_and_open()) {
+-            l->pa()->foreach(propfn, cookie);
+-        }
+-    });
++    prop_area *pa = __system_property_area__;
++    /*list_foreach(contexts, [propfn, cookie](context_node* l) {
++        if (l->check_access_and_open()) {*/
++            pa->foreach(propfn, cookie);
++        /*}
++    });*/
+     return 0;
+ }
+-- 
+1.9.1
+

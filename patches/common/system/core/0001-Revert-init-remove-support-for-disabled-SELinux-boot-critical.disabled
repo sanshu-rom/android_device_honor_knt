@@ -1,0 +1,122 @@
+From fa542bfae5a8a153c784a403b4695cfe26e597b8 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Mon, 23 Jan 2017 08:56:35 -0600
+Subject: [PATCH 1/2] Revert "init: remove support for disabled SELinux"
+
+This reverts commit d34e407aeb5898f19d4f042b7558420bbb3a1817.
+
+Conflicts:
+	init/init.cpp
+
+Change-Id: Id45423b2c353d19637355b67cab4f24c7fc400e6
+---
+ init/Android.mk |  4 ++--
+ init/init.cpp   | 40 +++++++++++++++++++++++++++++-----------
+ 2 files changed, 31 insertions(+), 13 deletions(-)
+
+diff --git a/init/Android.mk b/init/Android.mk
+index 0f5fe1c..94f71e4 100644
+--- a/init/Android.mk
++++ b/init/Android.mk
+@@ -5,9 +5,9 @@ LOCAL_PATH:= $(call my-dir)
+ # --
+ 
+ ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
+-init_options += -DALLOW_LOCAL_PROP_OVERRIDE=1 -DALLOW_PERMISSIVE_SELINUX=1
++init_options += -DALLOW_LOCAL_PROP_OVERRIDE=1 -DALLOW_DISABLE_SELINUX=1
+ else
+-init_options += -DALLOW_LOCAL_PROP_OVERRIDE=0 -DALLOW_PERMISSIVE_SELINUX=0
++init_options += -DALLOW_LOCAL_PROP_OVERRIDE=0 -DALLOW_DISABLE_SELINUX=0
+ endif
+ 
+ init_options += -DLOG_UEVENTS=0
+diff --git a/init/init.cpp b/init/init.cpp
+index 9992b47..b80ceb9 100755
+--- a/init/init.cpp
++++ b/init/init.cpp
+@@ -434,7 +434,7 @@ static void selinux_init_all_handles(void)
+     sehandle_prop = selinux_android_prop_context_handle();
+ }
+ 
+-enum selinux_enforcing_status { SELINUX_PERMISSIVE, SELINUX_ENFORCING };
++enum selinux_enforcing_status { SELINUX_DISABLED, SELINUX_PERMISSIVE, SELINUX_ENFORCING };
+ 
+ static selinux_enforcing_status selinux_status_from_cmdline() {
+     selinux_enforcing_status status = SELINUX_ENFORCING;
+@@ -442,15 +442,32 @@ static selinux_enforcing_status selinux_status_from_cmdline() {
+     import_kernel_cmdline(false, [&](const std::string& key, const std::string& value, bool in_qemu) {
+         if (key == "androidboot.selinux" && value == "permissive") {
+             status = SELINUX_PERMISSIVE;
+-        }
++        } else if (key =="androidboot.selinux" && value == "disabled") {
++	    status = SELINUX_DISABLED;
++	}
+     });
+ 
+     return status;
+ }
+ 
++
++static bool selinux_is_disabled(void)
++{
++    if (true) {
++        if (access("/sys/fs/selinux", F_OK) != 0) {
++            // SELinux is not compiled into the kernel, or has been disabled
++            // via the kernel command line "selinux=0".
++            return true;
++        }
++        return selinux_status_from_cmdline() == SELINUX_DISABLED;
++    }
++
++    return false;
++}
++
+ static bool selinux_is_enforcing(void)
+ {
+-    if (ALLOW_PERMISSIVE_SELINUX) {
++    if (true) {
+         return selinux_status_from_cmdline() == SELINUX_ENFORCING;
+     }
+     return true;
+@@ -458,6 +475,10 @@ static bool selinux_is_enforcing(void)
+ 
+ int selinux_reload_policy(void)
+ {
++    if (selinux_is_disabled()) {
++        return -1;
++    }
++
+     INFO("SELinux: Attempting to reload policy files\n");
+ 
+     if (selinux_android_reload_policy() == -1) {
+@@ -503,6 +524,10 @@ static void selinux_initialize(bool in_kernel_domain) {
+     cb.func_audit = audit_callback;
+     selinux_set_callback(SELINUX_CB_AUDIT, cb);
+ 
++    if (selinux_is_disabled()) {
++        return;
++    }
++
+     if (in_kernel_domain) {
+         INFO("Loading SELinux policy...\n");
+         if (selinux_android_load_policy() < 0) {
+@@ -510,15 +535,8 @@ static void selinux_initialize(bool in_kernel_domain) {
+             security_failure();
+         }
+ 
+-        bool kernel_enforcing = (security_getenforce() == 1);
+         bool is_enforcing = selinux_is_enforcing();
+-        if (kernel_enforcing != is_enforcing) {
+-            if (security_setenforce(is_enforcing)) {
+-                ERROR("security_setenforce(%s) failed: %s\n",
+-                      is_enforcing ? "true" : "false", strerror(errno));
+-                security_failure();
+-            }
+-        }
++        security_setenforce(is_enforcing);
+ 
+         if (write_file("/sys/fs/selinux/checkreqprot", "0") == -1) {
+             security_failure();
+-- 
+1.9.1
+

@@ -1,0 +1,211 @@
+From 867b1572a751a0d5f6f9f8623cdd8fb83da84a58 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Sun, 19 Feb 2017 07:12:08 -0600
+Subject: [PATCH] 0001-super-charger
+
+Change-Id: Iec91cfd51fc2ade8ab32117ff92464cfe99cca77
+---
+ healthd/Android.mk               |   2 +-
+ healthd/healthd_mode_charger.cpp | 118 ++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 117 insertions(+), 3 deletions(-)
+
+diff --git a/healthd/Android.mk b/healthd/Android.mk
+index b923724..49d1537 100644
+--- a/healthd/Android.mk
++++ b/healthd/Android.mk
+@@ -40,7 +40,7 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
+ LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT_SBIN)
+ LOCAL_UNSTRIPPED_PATH := $(TARGET_ROOT_OUT_SBIN_UNSTRIPPED)
+ 
+-LOCAL_CFLAGS := -D__STDC_LIMIT_MACROS -Werror
++LOCAL_CFLAGS := -D__STDC_LIMIT_MACROS
+ 
+ HEALTHD_CHARGER_DEFINES := RED_LED_PATH \
+     GREEN_LED_PATH \
+diff --git a/healthd/healthd_mode_charger.cpp b/healthd/healthd_mode_charger.cpp
+index 150e9aa..b179f00 100644
+--- a/healthd/healthd_mode_charger.cpp
++++ b/healthd/healthd_mode_charger.cpp
+@@ -69,6 +69,8 @@ char *locale;
+ 
+ #define BATTERY_FULL_THRESH     95
+ 
++#define TIMEZONE_PERSIST_PROP_FILE "/data/property/persist.sys.timezone"
++
+ #define LAST_KMSG_PATH          "/proc/last_kmsg"
+ #define LAST_KMSG_PSTORE_PATH   "/sys/fs/pstore/console-ramoops"
+ #define LAST_KMSG_MAX_SZ        (32 * 1024)
+@@ -238,6 +240,9 @@ static int set_blink(int val)
+     return 0;
+ }
+ 
++static bool show_datetime = false;
++static bool no_suspend = false;
++
+ static int set_tricolor_led(int on, int color)
+ {
+     int fd, i;
+@@ -381,12 +386,56 @@ static int draw_text(const char *str, int x, int y)
+ 
+     return y + char_height;
+ }
++static void android_black(void)
++{
++    gr_color(0x00, 0x00, 0x00, 255);
++}
++
++static void android_blue(void)
++{
++    gr_color(0x14, 0x48, 0x9e, 255);
++}
+ 
+ static void android_green(void)
+ {
+     gr_color(0xa4, 0xc6, 0x39, 255);
+ }
+ 
++static void android_white(void)
++{
++    gr_color(0xff, 0xff, 0xff, 255);
++}
++
++static void draw_datetime()
++{
++    time_t t = time(NULL);
++    gmtime(&t);
++    struct tm *tmptr = localtime(&t);
++    if(tmptr->tm_hour > 12) tmptr->tm_hour -= 12; 
++    char date[200];
++    char time[200];
++    const char *date_format = "%x";
++    const char *time_format = "%X";
++    if(!strftime(date, sizeof(date), date_format, tmptr)) {
++	LOGE("Unable to format date!\n");
++	return;
++    }
++    if(!strftime(time, sizeof(time), time_format, tmptr)) {
++	LOGE("Unable to format time!\n");
++	return;
++    }
++    if(tmptr != NULL)
++    {
++	/* Clear black first */
++        android_black();
++        gr_fill(10,930,1080,100);
++
++	android_white();
++	gr_text(220, 1550, date, 0);
++	gr_text(220, 1670, time, 0);
++    }
++}
++
+ /* returns the last y-offset of where the surface ends */
+ static int draw_surface_centered(struct charger* /*charger*/, GRSurface* surface)
+ {
+@@ -437,6 +486,9 @@ static void redraw_screen(struct charger *charger)
+ 
+     clear_screen();
+ 
++    if(show_datetime)
++	draw_datetime();
++
+     /* try to display *something* */
+     if (batt_anim->capacity < 0 || batt_anim->num_frames == 0)
+         draw_unknown(charger);
+@@ -489,7 +541,7 @@ static void update_screen_state(struct charger *charger, int64_t now)
+     }
+ 
+     /* animation is over, blank screen and leave */
+-    if (batt_anim->cur_cycle == batt_anim->num_cycles) {
++    if (batt_anim->cur_cycle == batt_anim->num_cycles && !no_suspend) {
+         reset_animation(batt_anim);
+         charger->next_screen_transition = -1;
+         healthd_board_mode_charger_set_backlight(false);
+@@ -575,6 +627,63 @@ static void update_screen_state(struct charger *charger, int64_t now)
+     }
+ }
+ 
++
++static void read_persist_prop(char *key, char *prop, char *dvalue) {
++    char path[255];
++    sprintf(path,"/data/property/%s",key);
++    const char * path2 = strdup(path);
++    if(access(path2,R_OK) == 0) {
++	FILE * prop_file = fopen(path2, "rt");
++	if(!fgets(prop,255,prop_file) != NULL)
++	    prop = dvalue;
++    } else
++	prop = dvalue;
++
++}
++
++static void dotimezone()
++{
++    /* Meticulus:
++     * Read the timezone and set it. Requires that /data and /system
++     * be mounted. The c library in android depends on the
++     * persist.sys.timezone property to determine local time.
++     * We are reading the property from the file on system and
++     * setting it using setprop.
++     */
++
++    char file_tzdata[256];
++    const char *env_prefix = "/system/bin/setprop persist.sys.timezone ";
++    char env_set[256];
++    if(access(TIMEZONE_PERSIST_PROP_FILE, R_OK) == 0)
++    {
++    	FILE *timezone_file  = fopen(TIMEZONE_PERSIST_PROP_FILE, "rt");
++    	if(fgets(file_tzdata, 255, timezone_file) != NULL)
++    	{
++		strcpy(env_set, env_prefix);
++		strcat(env_set, file_tzdata);
++       		system(env_set);
++    	} 
++    }
++}
++
++static void loadsettings()
++{
++
++    int wait = 0;
++    while(access("/data/property", F_OK) != 0 && wait < 10) {
++    	sleep(1);
++	wait ++;
++	LOGW("/data/property is not there... waiting...\n");
++    }
++    char datetime[255];
++    read_persist_prop("persist.sys.charger_showtime",datetime,"0");
++    show_datetime = (bool)atoi(datetime);
++ 
++    char suspend[255];
++    read_persist_prop("persist.sys.charger_nosuspend",suspend,"0");
++    no_suspend = (bool)atoi(suspend);
++}
++
+ static int set_key_callback(int code, int value, void *data)
+ {
+     struct charger *charger = (struct charger *)data;
+@@ -832,6 +941,11 @@ void healthd_mode_charger_init(struct healthd_config* config)
+     int i;
+     int epollfd;
+ 
++
++    loadsettings();
++    if(show_datetime)
++    	dotimezone();
++
+     dump_last_kmsg();
+ 
+     LOGW("--------------- STARTING CHARGER MODE ---------------\n");
+@@ -856,7 +970,7 @@ void healthd_mode_charger_init(struct healthd_config* config)
+     int scale_count;
+     int scale_fps;  // Not in use (charger/battery_scale doesn't have FPS text
+                     // chunk). We are using hard-coded frame.disp_time instead.
+-    ret = res_create_multi_display_surface("charger/battery_scale", &scale_count, &scale_fps,
++    ret = res_create_multi_display_surface("charger/cm_battery_scale", &scale_count, &scale_fps,
+                                            &scale_frames);
+     if (ret < 0) {
+         LOGE("Cannot load battery_scale image\n");
+-- 
+1.9.1
+

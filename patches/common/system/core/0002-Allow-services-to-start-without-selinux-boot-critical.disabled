@@ -1,0 +1,36 @@
+From b834efb5943529c39d2d438779f3b1e63a74d297 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Mon, 23 Jan 2017 09:30:25 -0600
+Subject: [PATCH 2/2] Allow services to start without selinux
+
+Change-Id: I344cc7d9442cf91282d2de38c1e936af18978e12
+---
+ init/service.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/init/service.cpp b/init/service.cpp
+index 76e0bc8..ac7d33a 100644
+--- a/init/service.cpp
++++ b/init/service.cpp
+@@ -343,7 +343,8 @@ bool Service::Start() {
+         return false;
+     }
+ 
+-    std::string scon;
++    std::string scon = seclabel_;
++/*
+     if (!seclabel_.empty()) {
+         scon = seclabel_;
+     } else {
+@@ -384,7 +385,7 @@ bool Service::Start() {
+             return false;
+         }
+     }
+-
++*/
+     NOTICE("Starting service '%s'...\n", name_.c_str());
+ 
+     pid_t pid = fork();
+-- 
+1.9.1
+

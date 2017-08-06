@@ -1,0 +1,36 @@
+From 62827aa279c220ff8eb7dc72f653392906985787 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Sun, 18 Jun 2017 06:54:24 -0500
+Subject: [PATCH] rr_variant: unofficial -> meticulus
+
+---
+ tools/rr_variant.sh | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/tools/rr_variant.sh b/tools/rr_variant.sh
+index 9dc4984..8b12867 100755
+--- a/tools/rr_variant.sh
++++ b/tools/rr_variant.sh
+@@ -26,7 +26,7 @@ echo -e ${ylw}"\n\n ▼ Which build-type do you want to choose?\n"${txtrst}
+ echo -e "";
+ echo -e ${blu}" 〉 1- Official "${txtrst}${red}"    ︱ Only for the official builds by the maintainers"${txtrst}
+ echo -e "";
+-echo -e ${blu}" 〉 2- Unofficial "${txtrst}${red}"  ︱ For the unofficial builds"${txtrst}
++echo -e ${blu}" 〉 2- Meticulus "${txtrst}${red}"  ︱ For the meticulus builds"${txtrst}
+ echo -e "";
+ echo -e ${blu}" 〉 3- Nightly "${txtrst}${red}"     ︱ Only for the official daily builds by the maintainers"${txtrst}
+ echo -e "";
+@@ -60,8 +60,8 @@ fi
+ if [ "$askvariant" == "2" ]
+ then
+ echo -e "";
+-echo -e ${blu}" ▪ Building unofficial variant "${txtrst}
+-export RR_BUILDTYPE=Unofficial
++echo -e ${blu}" ▪ Building meticulus variant "${txtrst}
++export RR_BUILDTYPE=Meticulus
+ echo -e "";
+ echo -e "";
+ $normal
+-- 
+1.9.1
+

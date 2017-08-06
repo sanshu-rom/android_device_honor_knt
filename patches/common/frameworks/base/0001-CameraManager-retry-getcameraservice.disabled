@@ -1,0 +1,32 @@
+From 016b4ff5c1053a664709aab260dc734e2212be01 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Wed, 9 Nov 2016 09:59:10 -0600
+Subject: [PATCH] CameraManager: retry getcameraservice
+
+Change-Id: I7c1da5f8005b970738bffcacc59abfb40385a13a
+---
+ core/java/android/hardware/camera2/CameraManager.java | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/core/java/android/hardware/camera2/CameraManager.java b/core/java/android/hardware/camera2/CameraManager.java
+index 1fcfaca..b5241db 100644
+--- a/core/java/android/hardware/camera2/CameraManager.java
++++ b/core/java/android/hardware/camera2/CameraManager.java
+@@ -232,6 +232,14 @@ public final class CameraManager {
+              */
+ 
+             ICameraService cameraService = CameraManagerGlobal.get().getCameraService();
++	    for (int i = 0;i < 5; i ++) {
++		if (cameraService != null)
++		    break;
++		try {
++		    Thread.sleep(2000);
++		} catch (Exception ex) { ex.printStackTrace();}
++		cameraService = CameraManagerGlobal.get().getCameraService();
++            }
+             if (cameraService == null) {
+                 throw new CameraAccessException(CameraAccessException.CAMERA_DISCONNECTED,
+                         "Camera service is currently unavailable");
+-- 
+1.9.1
+

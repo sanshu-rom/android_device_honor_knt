@@ -1,0 +1,329 @@
+From 9083c3c43177db87ea7b5e3968f050211daf626d Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Mon, 19 Jun 2017 13:30:28 -0500
+Subject: [PATCH] "0001-met_dev_functions-meticulus
+ _______________________________
+
+*Previous From a306a9e4c3cefb54ee13f814bffd370c1871b6ee Mon Sep 17 00:00:00 2001
+*Previous From: Meticulus <theonejohnnyd@gmail.com>
+*Previous Date: Mon, 19 Jun 2017 11:27:36 -0500
+*Previous Subject: [PATCH] "0001-met_dev_functions-meticulus
+*_______________________________
+*
+**Previous From bcee8fcd31aad8d79218bc507475be50ad302494 Mon Sep 17 00:00:00 2001
+**Previous From: Meticulus <theonejohnnyd@gmail.com>
+**Previous Date: Mon, 19 Jun 2017 11:20:22 -0500
+**Previous Subject: [PATCH] "0001-met_dev_functions-meticulus
+**_______________________________
+**
+***Previous From b830fa6d02997e06a7208839561145ce2df1bd30 Mon Sep 17 00:00:00 2001
+***Previous From: Meticulus <theonejohnnyd@gmail.com>
+***Previous Date: Mon, 19 Jun 2017 11:13:28 -0500
+***Previous Subject: [PATCH] "0001-met_dev_functions-meticulus
+***_______________________________
+***
+****Previous From 54db4b632bb650d7762d4982c897e3a4c4cc8e1a Mon Sep 17 00:00:00 2001
+****Previous From: Meticulus <theonejohnnyd@gmail.com>
+****Previous Date: Mon, 19 Jun 2017 11:03:03 -0500
+****Previous Subject: [PATCH] "0001-met_dev_functions-meticulus
+****_______________________________
+****
+*****Previous From 7a6cc7c3307bb8b28a601f42b8cefaabf9f37041 Mon Sep 17 00:00:00 2001
+*****Previous From: Meticulus <theonejohnnyd@gmail.com>
+*****Previous Date: Mon, 19 Jun 2017 10:57:30 -0500
+*****Previous Subject: [PATCH] "0001-met_dev_functions-meticulus
+*****_______________________________
+*****
+******Previous From 8fe2283c5a8113f6668da8efae98d1f88efe5ba0 Mon Sep 17 00:00:00 2001
+******Previous From: Meticulus <theonejohnnyd@gmail.com>
+******Previous Date: Mon, 19 Jun 2017 10:56:57 -0500
+******Previous Subject: [PATCH] "0001-met_dev_functions-meticulus
+******_______________________________
+******
+*******Previous From 27f19f7902a9f4877dafbd2a7398e91d0977c97a Mon Sep 17 00:00:00 2001
+*******Previous From: Meticulus <theonejohnnyd@gmail.com>
+*******Previous Date: Mon, 19 Jun 2017 10:54:38 -0500
+*******Previous Subject: [PATCH] "0001-met_dev_functions-meticulus
+*******_______________________________
+*******
+********Previous From e06b44b6a7ce8b46200c2f5157b53643e2d282c4 Mon Sep 17 00:00:00 2001
+********Previous From: Meticulus <theonejohnnyd@gmail.com>
+********Previous Date: Sun, 18 Jun 2017 12:44:22 -0500
+********Previous Subject: [PATCH] "0001-met_dev_functions-meticulus
+********_______________________________
+********
+*********Previous From 0f3e72b354dd416926a90555fa719cf7d3ba6a0a Mon Sep 17 00:00:00 2001
+*********Previous From: Meticulus <theonejohnnyd@gmail.com>
+*********Previous Date: Tue, 1 Nov 2016 08:20:06 -0500
+*********Previous Subject: [PATCH] 0001-met_dev_functions
+*********"
+********
+********Change-Id: Ie77c1103bfcdac98b92c53766aa93f6641454eb1"
+*******
+*******Change-Id: I64a9142f219b193ecc05af21d0a59596cbd81440"
+******
+******Change-Id: I57a737c80824dbfebb0092439cd9f1ed9c8afc0f"
+*****
+*****Change-Id: I57bef2b57e69df0cfebf1b88d132a0115b02746f"
+****
+****Change-Id: Idab349f1cc9241e0714916718202f17ea4660121"
+***
+***Change-Id: Ied9c80af12d85cce85308b2ada608234183ddc5a"
+**
+**Change-Id: Icd2b4a0b87b671f883cea81f16561b05f41898f3"
+*
+*Change-Id: Idb4a7a01c5a68f7b4f74a804f177b7b03b6af8da"
+
+Change-Id: I5b35cc9fe2ee9751d3d01ee6b952b6ebfb328abb
+---
+ gui/action.cpp                |  62 +++++++++++++++++++++++
+ gui/objects.hpp               |   5 ++
+ gui/resources.cpp             |   2 +-
+ gui/theme/common/portrait.xml | 115 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 183 insertions(+), 1 deletion(-)
+
+diff --git a/gui/action.cpp b/gui/action.cpp
+index a395158..f465424 100644
+--- a/gui/action.cpp
++++ b/gui/action.cpp
+@@ -231,6 +231,11 @@ GUIAction::GUIAction(xml_node<>* node)
+ 		ADD_ACTION(twcmd);
+ 		ADD_ACTION(setbootslot);
+ 		ADD_ACTION(installapp);
++		ADD_ACTION(flashsupersu);
++		ADD_ACTION(usbhoston);
++		ADD_ACTION(usbhostoff);
++		ADD_ACTION(dump);
++		ADD_ACTION(restoredump);
+ 	}
+ 
+ 	// First, get the action
+@@ -1760,6 +1765,63 @@ int GUIAction::twcmd(std::string arg)
+ 	return 0;
+ }
+ 
++int GUIAction::flashsupersu(std::string arg)
++{
++	int wipe_cache = 0;
++	int op_status = 0;
++	operation_start("Flash SuperSU");
++	op_status = flash_zip("/sbin/supersu.zip", &wipe_cache);
++	operation_end(op_status);
++	return 0;
++}
++
++int GUIAction::usbhoston(std::string arg)
++{
++	int op_status = 0;
++	operation_start("USB HOST ON");
++	op_status = system("echo hoston > /sys/devices/ff100000.hisi_usb/plugusb");
++	if(!op_status) {
++		system(" echo 255 > /sys/class/leds/blue/brightness");
++		gui_msg("USB host mode on");
++	} else 
++		gui_warn("Could not turn on usb host!?!");
++	operation_end(op_status);
++	return 0;
++}
++
++int GUIAction::usbhostoff(std::string arg)
++{
++	int op_status = 0;
++	operation_start("USB HOST OFF");
++	op_status = system("echo hostoff > /sys/devices/ff100000.hisi_usb/plugusb");
++	if(!op_status) {
++		system(" echo 0 > /sys/class/leds/blue/brightness");
++		gui_msg("USB host mode off");
++	} else 
++		gui_warn("Could not turn off usb host!?!");
++	operation_end(op_status);
++	return 0;
++}
++int GUIAction::dump(std::string arg)
++{
++	int wipe_cache = 0;
++	int op_status = 0;
++	operation_start("Dump");
++	op_status = flash_zip("/sbin/StockBackup_hi6250.zip", &wipe_cache);
++	operation_end(op_status);
++	return 0;
++}
++
++int GUIAction::restoredump(std::string arg)
++{
++	int wipe_cache = 0;
++	int op_status = 0;
++	operation_start("Restore Dump");
++	op_status = flash_zip("/sbin/RestoreStockBackup_hi6250.zip", &wipe_cache);
++	operation_end(op_status);
++	return 0;
++}
++
+ int GUIAction::getKeyByName(std::string key)
+ {
+ 	if (key == "home")		return KEY_HOMEPAGE;  // note: KEY_HOME is cursor movement (like KEY_END)
+diff --git a/gui/objects.hpp b/gui/objects.hpp
+index 630cf71..efd9ca4 100644
+--- a/gui/objects.hpp
++++ b/gui/objects.hpp
+@@ -367,6 +367,11 @@ protected:
+ 	int twcmd(std::string arg);
+ 	int setbootslot(std::string arg);
+ 	int installapp(std::string arg);
++	int flashsupersu(std::string arg);
++	int usbhoston(std::string arg);
++	int usbhostoff(std::string arg);
++	int dump(std::string arg);
++	int restoredump(std::string arg);
+ 
+ 	int simulate;
+ };
+diff --git a/gui/resources.cpp b/gui/resources.cpp
+index bd71d50..f07fe72 100644
+--- a/gui/resources.cpp
++++ b/gui/resources.cpp
+@@ -312,7 +312,7 @@ std::string ResourceManager::FindString(const std::string& name) const
+ 		std::map<std::string, string_resource_struct>::const_iterator it = mStrings.find(name);
+ 		if (it != mStrings.end())
+ 			return it->second.value;
+-		LOGERR("String resource '%s' not found. No default value.\n", name.c_str());
++		//LOGERR("String resource '%s' not found. No default value.\n", name.c_str());
+ 		PageManager::AddStringResource("NO DEFAULT", name, "[" + name + ("]"));
+ 	} else {
+ 		LOGINFO("String resources not loaded when looking for '%s'. No default value.\n", name.c_str());
+diff --git a/gui/theme/common/portrait.xml b/gui/theme/common/portrait.xml
+index b0a1660..5c9a9c7 100644
+--- a/gui/theme/common/portrait.xml
++++ b/gui/theme/common/portrait.xml
+@@ -3513,6 +3513,12 @@
+ 					<action function="page">confirm_action</action>
+ 				</actions>
+ 			</button>
++                        
++			<button style="main_button">	
++				<placement x="%center_x%" y="%row19_y%"/>
++				<text>Extras</text>
++				<action function="page">meticulus</action>
++			</button>
+ 
+ 			<action>
+ 				<touch key="home"/>
+@@ -3525,6 +3531,115 @@
+ 			</action>
+ 		</page>
+ 
++		<page name="meticulus">
++			<template name="page"/>
++
++			<text style="text_l">
++				<placement x="%col1_x_header%" y="%row3_header_y%"/>
++				<text>{@advanced_hdr=Advanced}</text>
++			</text>
++
++			<text style="text_m">
++				<placement x="%col1_x_header%" y="%row4_header_y%"/>
++				<text>Meticulus Development: Extras</text>
++			</text>
++
++			<button style="main_button">
++				<placement x="%indent%" y="%row2a_y%"/>
++				<text>Super SU</text>
++				<actions>
++					<action function="set">tw_back=meticulus</action>
++					<action function="set">tw_action=flashsupersu</action>
++					<action function="set">tw_has_action2=0</action>
++					<action function="set">tw_action_text1=Flashing SuperSu</action>
++					<action function="set">tw_action_text2=</action>
++				        <action function="set">tw_text1=Flash SuperSu</action>
++                                	<action function="set">tw_text2=This is intended for marshmallow ROMs</action>
++                                	<action function="set">tw_text3=and may not work in nougat+ ROMs</action>
++                                	<action function="set">tw_text4=</action>
++					<action function="set">tw_complete_text1=SuperSu Flashed!</action>
++					<action function="set">tw_slider_text=Flash SuperSU?</action>
++					<action function="page">confirm_action</action>	
++				</actions>
++				<action function="flash"/>
++			</button>
++
++                        <button style="main_button">
++                                <placement x="%indent%" y="%row8_y%"/>
++                                <text>USB Host: ON</text>
++                                <actions>
++                                        <action function="set">tw_back=meticulus</action>
++                                        <action function="set">tw_action=usbhoston</action>
++                                        <action function="set">tw_has_action2=0</action>
++                                        <action function="set">tw_action_text1=Activating USB HOST</action>
++                                        <action function="set">tw_action_text2=</action>
++                                        <action function="set">tw_complete_text1=USB HOST ON</action>
++                                        <action function="page">action_page</action>
++                                </actions>
++                        </button>
++
++                        <button style="main_button">
++                                <placement x="%center_x%" y="%row8_y%"/>
++                                <text>USB Host: OFF</text>
++                                <actions>
++                                        <action function="set">tw_back=meticulus</action>
++                                        <action function="set">tw_action=usbhostoff</action>
++                                        <action function="set">tw_has_action2=0</action>
++                                        <action function="set">tw_action_text1=Activating USB HOST</action>
++                                        <action function="set">tw_action_text2=</action>
++                                        <action function="set">tw_complete_text1=USB HOST OFF</action>
++                                        <action function="page">action_page</action>
++                                </actions>
++                        </button>
++
++			<button style="main_button">
++				<placement x="%indent%" y="%row13a_y%"/>
++				<text>Dump</text>
++				<actions>
++					<action function="set">tw_back=meticulus</action>
++					<action function="set">tw_action=dump</action>
++					<action function="set">tw_has_action2=0</action>
++					<action function="set">tw_action_text1=Dumping system and boot</action>
++					<action function="set">tw_action_text2=</action>
++				        <action function="set">tw_text1=Dump system and boot</action>
++                                	<action function="set">tw_text2=This will create a dump of the system and boot partitions.</action>
++                                	<action function="set">tw_text3=in the /sdcard/meticulus folder. Use "Restore Dump" to</action>
++                                	<action function="set">tw_text4=return to stock.</action>
++					<action function="set">tw_complete_text1=Dump complete!</action>
++					<action function="set">tw_slider_text=Dump system and boot?</action>
++					<action function="page">confirm_action</action>	
++				</actions>
++			</button>
++			<button style="main_button">
++				<placement x="%center_x%" y="%row13a_y%"/>
++				<text>Restore Dump</text>
++				<actions>
++					<action function="set">tw_back=meticulus</action>
++					<action function="set">tw_action=restoredump</action>
++					<action function="set">tw_has_action2=0</action>
++					<action function="set">tw_action_text1=Restoring system and boot</action>
++					<action function="set">tw_action_text2=</action>
++				        <action function="set">tw_text1=Restore system and boot</action>
++                                	<action function="set">tw_text2=This will restore the dumps of system and boot created</action>
++                                	<action function="set">tw_text3=using "Dump", and format /data so that you can</action>
++                                	<action function="set">tw_text4=return to stock.</action>
++					<action function="set">tw_complete_text1=Restore dump complete</action>
++					<action function="set">tw_slider_text=Restore dump?</action>
++					<action function="page">confirm_action</action>	
++				</actions>
++			</button>
++
++			<action>
++				<touch key="home"/>
++				<action function="page">main</action>
++			</action>
++
++			<action>
++				<touch key="back"/>
++				<action function="page">advanced</action>
++			</action>
++		</page>
++
+ 		<page name="partsdcardsel">
+ 			<template name="page"/>
+ 
+-- 
+1.9.1
+

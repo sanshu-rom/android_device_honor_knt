@@ -1,0 +1,47 @@
+From a883e096f5e679976a71ff5e16f39b3a16239939 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Sat, 24 Dec 2016 23:49:04 -0600
+Subject: [PATCH] 0001-linker-Allow-shim-libs-with-enforcing-sepolicy
+
+Change-Id: I09ecbdfe092879e0227f29b989d0a2eda0c59909
+---
+ linker/Android.mk | 4 ++++
+ linker/linker.cpp | 6 +++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/linker/Android.mk b/linker/Android.mk
+index 7221d12..b99213c 100644
+--- a/linker/Android.mk
++++ b/linker/Android.mk
+@@ -62,6 +62,10 @@ LOCAL_CPPFLAGS += -DTARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS
+ endif
+ endif
+ 
++ifneq ($(LD_SHIM_LIBS),)
++LOCAL_CPPFLAGS += -DLD_SHIM_LIBS=\"$(LD_SHIM_LIBS)\"
++endif
++
+ # We need to access Bionic private headers in the linker.
+ LOCAL_CFLAGS += -I$(LOCAL_PATH)/../libc/
+ 
+diff --git a/linker/linker.cpp b/linker/linker.cpp
+index 4166be7..3ad2641 100644
+--- a/linker/linker.cpp
++++ b/linker/linker.cpp
+@@ -4293,8 +4293,12 @@ static ElfW(Addr) __linker_init_post_relocation(KernelArgumentBlock& args, ElfW(
+     if (ldpreload_env != nullptr) {
+       INFO("[ LD_PRELOAD set to \"%s\" ]", ldpreload_env);
+     }
+-    ldshim_libs_env = getenv("LD_SHIM_LIBS");
+   }
++#ifdef LD_SHIM_LIBS
++  ldshim_libs_env = LD_SHIM_LIBS;
++#else
++  ldshim_libs_env = getenv("LD_SHIM_LIBS");
++#endif
+ 
+   struct stat file_stat;
+   // Stat "/proc/self/exe" instead of executable_path because
+-- 
+1.9.1
+

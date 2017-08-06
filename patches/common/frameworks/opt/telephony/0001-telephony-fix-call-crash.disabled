@@ -1,0 +1,36 @@
+From 688c79df76927d411d09167ab7792d0e3b4629c3 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Tue, 29 Nov 2016 10:04:30 -0600
+Subject: [PATCH] telephony - fix-call-crash
+
+Change-Id: Ibd8b895d682eae2a9cf0fce21f15b5e1d418cd49
+---
+ .../com/android/internal/telephony/gsm/GsmCallTracker.java   | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/gsm/GsmCallTracker.java b/src/java/com/android/internal/telephony/gsm/GsmCallTracker.java
+index 0601002..a556db9 100644
+--- a/src/java/com/android/internal/telephony/gsm/GsmCallTracker.java
++++ b/src/java/com/android/internal/telephony/gsm/GsmCallTracker.java
+@@ -976,9 +976,15 @@ public final class GsmCallTracker extends CallTracker {
+                     Rlog.i(LOG_TAG,
+                             "Exception during getLastCallFailCause, assuming normal disconnect");
+                 } else {
+-                    LastCallFailCause failCause = (LastCallFailCause)ar.result;
+-                    causeCode = failCause.causeCode;
+-                    vendorCause = failCause.vendorCause;
++                    LastCallFailCause failCause;
++                    try {
++                    	failCause = (LastCallFailCause)ar.result;
++                    	causeCode = failCause.causeCode;
++                    	vendorCause = failCause.vendorCause;
++		    } catch (Exception ex) {	
++                        causeCode = CallFailCause.NORMAL_CLEARING;
++                        vendorCause = "Unknown: int array cast issue";
++		    } 
+                 }
+                 // Log the causeCode if its not normal
+                 if (causeCode == CallFailCause.NO_CIRCUIT_AVAIL ||
+-- 
+1.9.1
+

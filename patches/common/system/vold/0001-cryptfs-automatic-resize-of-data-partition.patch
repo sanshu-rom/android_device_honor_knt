@@ -1,0 +1,69 @@
+From dfa9951058ed5fc0179a2e91122f932870c4b352 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Wed, 15 Feb 2017 10:24:36 -0600
+Subject: [PATCH] 0001-cryptfs-automatic-resize-of-data-partition
+
+Change-Id: I1c6703a94a52377e5a2889bcaf103f437d0d6530
+---
+ cryptfs.c | 28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 cryptfs.c
+
+diff --git a/cryptfs.c b/cryptfs.c
+old mode 100644
+new mode 100755
+index 85c37b9..67dbd45
+--- a/cryptfs.c
++++ b/cryptfs.c
+@@ -3291,6 +3291,8 @@ static int cryptfs_enable_all_volumes(struct crypt_mnt_ftr *crypt_ftr, int how,
+     return rc;
+ }
+ 
++bool resize_data = false;
++
+ int cryptfs_enable_internal(char *howarg, int crypt_type, char *passwd,
+                             int no_ui)
+ {
+@@ -3385,7 +3387,17 @@ int cryptfs_enable_internal(char *howarg, int crypt_type, char *passwd,
+ 
+         if (fs_size_sec > max_fs_size_sec) {
+             SLOGE("Orig filesystem overlaps crypto footer region.  Cannot encrypt in place.");
+-            goto error_unencrypted;
++            /*resize_data = true;
++	    SLOGI("Meticulus: Will attempt to resize when data is unmounted.");*/
++
++
++	    /* Meticulus:
++	     * There are problems with the keystore so
++	     * If anyone tries to encrypt their phone
++	     * we are going to just reboot. Better
++	     * than the boot loop otherwise!
++	     */
++	    system("/system/bin/reboot");
+         }
+     }
+ 
+@@ -3485,6 +3497,20 @@ int cryptfs_enable_internal(char *howarg, int crypt_type, char *passwd,
+             save_persistent_data();
+         }
+     }
++    /* Once we have /data unmounted, resize */
++    if (resize_data) {
++	int i = 0;
++	while(system("/system/bin/sh -c '/system/bin/logwrapper /system/bin/data_enc_resize'") != 0 && i < 20) {
++	   sleep(1);
++	   i++;
++	}
++	if(i == 20) {
++	    SLOGE("Meticulus: resize failed!");
++	    system("/system/bin/reboot");
++	} else {
++	    SLOGI("e2fsck succeeded!");
++	}
++    }
+ 
+     /* When encryption triggered from settings, encryption starts after reboot.
+        So set the encryption key when the actual encryption starts.
+-- 
+1.9.1
+

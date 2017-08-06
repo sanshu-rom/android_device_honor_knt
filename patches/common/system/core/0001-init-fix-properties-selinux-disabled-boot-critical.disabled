@@ -1,0 +1,34 @@
+From f3ba3a2368befc4ffcc94be623b0ff50bcdc1449 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Wed, 25 Jan 2017 07:53:25 -0600
+Subject: [PATCH] 0001-init-fix-properties-selinux-disabled
+
+Change-Id: Id0020bfd83945ebc43cccd0a0c012d690a1801b8
+---
+ init/property_service.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 8644329..45ddebe 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -67,14 +67,14 @@ static int property_set_fd = -1;
+ void property_init() {
+     if (__system_property_area_init()) {
+         ERROR("Failed to initialize property area\n");
+-        exit(1);
++        //exit(1);
+     }
+ }
+ 
+ static int check_mac_perms(const char *name, char *sctx, struct ucred *cr)
+ {
+     char *tctx = NULL;
+-    int result = 0;
++    int result = 1;
+     property_audit_data audit_data;
+ 
+     if (!sctx)
+-- 
+1.9.1
+

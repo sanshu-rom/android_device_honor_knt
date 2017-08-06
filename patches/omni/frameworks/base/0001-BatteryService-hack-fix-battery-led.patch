@@ -1,0 +1,55 @@
+From 2209f7b68ed3cef03afb0db442b92d0536268c7b Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Wed, 14 Jun 2017 13:57:44 -0500
+Subject: [PATCH] BatteryService: hack fix battery led
+
+Change-Id: I00459a667de964ffe5392dd2170e57a7eaef0b7d
+---
+ .../java/com/android/server/BatteryService.java    | 25 +++++++---------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
+
+diff --git a/services/core/java/com/android/server/BatteryService.java b/services/core/java/com/android/server/BatteryService.java
+index f440549..342417d 100644
+--- a/services/core/java/com/android/server/BatteryService.java
++++ b/services/core/java/com/android/server/BatteryService.java
+@@ -1009,29 +1009,20 @@ public final class BatteryService extends SystemService {
+             Resources res = mContext.getResources();
+ 
+             // Battery light enabled
+-            mLightEnabled = Settings.System.getIntForUser(resolver,
+-                    Settings.System.BATTERY_LIGHT_ENABLED, mLightEnabled ? 1 : 0, UserHandle.USER_CURRENT) != 0;
++            mLightEnabled = true; 
+ 
+             // Low battery pulse
+-            mLedPulseEnabled = Settings.System.getIntForUser(resolver,
+-                    Settings.System.BATTERY_LIGHT_PULSE, mLightEnabled ? 1 : 0, UserHandle.USER_CURRENT) != 0;
++            mLedPulseEnabled = true;
+ 
+             // Only light when fully charged
+-            mLightOnlyFullyCharged = Settings.System.getIntForUser(resolver,
+-                    Settings.System.BATTERY_LIGHT_ONLY_FULLY_CHARGED, 0, UserHandle.USER_CURRENT) != 0;
++            mLightOnlyFullyCharged = false;
++
+ 
+             // Light colors
+-            mBatteryLowARGB = Settings.System.getIntForUser(resolver,
+-                    Settings.System.BATTERY_LIGHT_LOW_COLOR,
+-                    res.getInteger(com.android.internal.R.integer.config_notificationsBatteryLowARGB), UserHandle.USER_CURRENT);
+-            mBatteryMediumARGB = Settings.System.getIntForUser(resolver,
+-                    Settings.System.BATTERY_LIGHT_MEDIUM_COLOR,
+-                    res.getInteger(com.android.internal.R.integer.config_notificationsBatteryMediumARGB), UserHandle.USER_CURRENT);
+-            mBatteryFullARGB = Settings.System.getIntForUser(resolver,
+-                    Settings.System.BATTERY_LIGHT_FULL_COLOR,
+-                    res.getInteger(com.android.internal.R.integer.config_notificationsBatteryFullARGB), UserHandle.USER_CURRENT);
+-            mBatteryReallyFullARGB = Settings.System.getIntForUser(resolver,
+-                    Settings.System.BATTERY_LIGHT_REALLY_FULL_COLOR, mBatteryFullARGB, UserHandle.USER_CURRENT);
++            mBatteryLowARGB = 0xffff0000;
++            mBatteryMediumARGB = 0xffffff00;
++            mBatteryFullARGB = 0xff00ff00;
++            mBatteryReallyFullARGB = 0xff00ff00; 
+ 
+             updateLedPulse();
+         }
+-- 
+1.9.1
+

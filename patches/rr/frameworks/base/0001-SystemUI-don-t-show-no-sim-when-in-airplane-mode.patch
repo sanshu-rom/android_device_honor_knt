@@ -1,0 +1,32 @@
+From b3d4af0544f289928d2933805a1cf5a1484da6f8 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Sun, 18 Jun 2017 07:37:09 -0500
+Subject: [PATCH] "0001-SystemUI-don-t-show-no-sim-when-in-airplane-mode
+ _______________________________
+
+*Previous From bdbdeafdf5bf6658c322ee87d61a712965cd8a24 Mon Sep 17 00:00:00 2001
+*Previous From: Meticulus <theonejohnnyd@gmail.com>
+*Previous Date: Wed, 15 Mar 2017 15:46:54 -0500
+*Previous Subject: [PATCH] SystemUI: don't show no sim when in airplane mode
+*
+*Change-Id: Iaa45dd560d318f714aa585f51ae8de7320598c1e"
+---
+ .../SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java  | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java b/packages/SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java
+index fb04416..a8b8b1e 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java
+@@ -643,7 +643,7 @@ public class SignalClusterView
+         } else {
+             mWifiSignalSpacer.setVisibility(View.GONE);
+         }
+-        boolean show = simMissing() && (mNoSimsVisible && !mShowNoSims);
++        boolean show = simMissing() && (mNoSimsVisible && !mShowNoSims && !mIsAirplaneMode);
+         mNoSimsCombo.setVisibility(show ? View.VISIBLE : View.GONE);
+     }
+ 
+-- 
+1.9.1
+
