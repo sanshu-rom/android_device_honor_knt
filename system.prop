@@ -35,7 +35,19 @@ ro.config.hw_disable_cops=true
 ro.config.hw_globalEcc=true
 ro.config.hw_useCtrlSocket=true
 ro.config.updatelocation=true
+ro.dual.sim.phone=true
+ro.config.hw_sim2airplane=true
+ro.config.support_ca=true
+ro.build.hide=true
 
+# FRAMEWORK TEAM BEGIN
+dalvik.vm.dex2oat-Xms=64m
+dalvik.vm.dex2oat-Xmx=512m
+dalvik.vm.image-dex2oat-Xms=64m
+dalvik.vm.image-dex2oat-Xmx=64m
+
+ro.systemui.debug=true
+ro.config.hw_dts=true
 # Performance
 ro.am.reschedule_service=true
 
@@ -47,7 +59,7 @@ ro.config.hw_save_pin=true
 ro.config.hw_volte_on=true
 persist.radio.infrared_switch=true
 
-ro.telephony.ril_class=HuaweiRIL
+ro.telephony.ril_class=HwHisiRIL
 audioril.lib=libhuawei-audio-ril.so
 persist.radio.apm_sim_not_pwdn=1
 

@@ -107,7 +107,7 @@ void init_target_properties()
         property_set("ro.product.model", "KNT-AL10");
         property_set("ro.radio.vsim_support", "true");
         property_set("ro.config.client_number", "5");
-        property_set("ro.config.modem_number", "3");
+        property_set("ro.config.modem_number", "4");
         property_set("ro.config.hw_dsda", "true");
         property_set("persist.dsds.enabled", "true");
         property_set("persist.radio.multisim.config", "dsda");
