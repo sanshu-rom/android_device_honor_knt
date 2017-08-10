@@ -28,6 +28,8 @@ persist.radio.infrared_switch=true
 ro.frp.pst=/dev/block/platform/hi_mci.0/by-name/frp
 gsm.fastdormancy.mode=3
 
+ro.product.model=Honor V8
+
 persist.sys.dualcards=true
 ril.hw_modem0.rssi=-1
 ril.hw_modem1.rssi=-1
@@ -48,6 +50,32 @@ dalvik.vm.image-dex2oat-Xmx=64m
 
 ro.systemui.debug=true
 ro.config.hw_dts=true
+
+ro.telephony.default_network=22
+ro.pwroff_card_if_tray_out=true
+ro.config.is_start_commril=true
+persist.radio.modem.cap=899BD
+rild.libargs=-d /dev/viacomm_cmux
+rild.libpath=/vendor/lib64/libvia-ril.so
+rild.libpath3=/vendor/lib64/libbalong-ril-2.so
+ro.config.modem_number=4
+ro.multi.rild=false
+ro.config.hw_save_pin=true
+ro.config.hw_dsda=true
+rild.libpath1=/vendor/lib64/libbalong-ril.so
+ro.config.default_commril_mode=CLG_MODE
+ro.config.client_number=3
+rild.libargs3=-m modem2
+rild.libargs2=-m modem1
+persist.dsds.enabled=true
+rild.libpath2=/vendor/lib64/libbalong-ril-1.so
+ro.config.full_network_support=true
+rild.rild1_ready_to_start=false
+rild.libargs1=-m modem0
+persist.radio.multisim.config=dsda
+ro.config.hw_device_mode=clg_mode
+ro.config.dsds_mode=cdma_gsm
+
 # Performance
 ro.am.reschedule_service=true
 
@@ -60,7 +88,7 @@ ro.config.hw_volte_on=true
 persist.radio.infrared_switch=true
 
 ro.telephony.ril_class=HwHisiRIL
-audioril.lib=libhuawei-audio-ril.so
+#audioril.lib=libhuawei-audio-ril.so
 persist.radio.apm_sim_not_pwdn=1
 
 # Storage

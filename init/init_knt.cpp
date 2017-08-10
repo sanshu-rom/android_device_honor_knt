@@ -52,63 +52,33 @@ void init_target_properties()
             break;
     fin.close();
 
-    if (buf.find("KNT_UL10") != std::string::npos) {
+    if (buf.find("KNT-UL10") != std::string::npos) {
         property_set("ro.product.model", "KNT-UL10");
-        property_set("ro.radio.vsim_support", "true");
         property_set("ro.config.client_number", "5");
         property_set("ro.config.modem_number", "3");
         property_set("ro.config.hw_dsda", "true");
         property_set("persist.dsds.enabled", "true");
         property_set("persist.radio.multisim.config", "dsda");
-        property_set("ro.config.hw_device_mode", "clg_mode");
-        property_set("rild.libargs", "-d /dev/viacomm_cmux");
-        property_set("rild.libargs1", "-m modem0");
-        property_set("rild.libargs2", "-m modem1");
-        property_set("rild.libargs3", "-m modem2");
-        property_set("ro.config.dsds_mode", "cdma_gsm");
-        property_set("ro.config.default_commril_mode", "CLG_MODE");
-        property_set("ro.telephony.default_network", "10");
-        property_set("ro.config.full_network_support", "true");
-        property_set("persist.radio.modem.cap", "899BD");
-        property_set("rild.libpath", "/vendor/lib64/libvia-ril.so");
-        property_set("rild.libpath1", "/vendor/lib64/libbalong-ril.so");
-        property_set("rild.libpath2", "/vendor/lib64/libbalong-ril-1.so");
-        property_set("rild.libpath3", "/vendor/lib64/libbalong-ril-2.so");
+        property_set("ro.config.hw_device_mode", "ulg_mode");
+        property_set("rild.libargs", "-m modem0");
+        property_set("rild.libargs1", "-m modem1");
+        property_set("ro.config.dsds_mode", "umts_gsm");
+        property_set("rild.libpath", "/vendor/lib64/libbalong-ril.so");
+        property_set("rild.libpath1", "/vendor/lib64/libbalong-ril-1.so");
+        property_set("persist.radio.modem.cap", "8999D");
+        property_set("ro.telephony.default_network", "9");
+        property_set("ro.config.full_network_support", "false");
+        property_set("ro.config.default_commril_mode", "ULG_MODE");
         property_set("ro.build.description", "KNT-UL10-user 7.0 HUAWEIKNT_UL10 C00B385 release-keys");
         property_set("ro.build.fingerprint", "HONOR/KNT_UL10/HWKNT:7.0/HUAWEIKNT_UL10/C00B385:user/release-keys");
     }
     else if (buf.find("KNT-TL10") != std::string::npos) {
-        property_set("ro.product.model", "KNT_TL10");
+        property_set("ro.product.model", "KNT-TL10");
         property_set("ro.radio.vsim_support", "true");
         property_set("ro.config.client_number", "5");
         property_set("ro.config.modem_number", "4");
         property_set("ro.config.hw_dsda", "true");
-        property_set("persist.dsds.enabled", "true");
-        property_set("persist.radio.multisim.config", "dsda");
-        property_set("ro.config.hw_device_mode", "clg_mode");
-        property_set("rild.libargs", "-d /dev/viacomm_cmux");
-        property_set("rild.libargs1", "-m modem0");
-        property_set("rild.libargs2", "-m modem1");
-        property_set("rild.libargs3", "-m modem2");
-        property_set("ro.config.dsds_mode", "cdma_gsm");
-        property_set("ro.config.default_commril_mode", "CLG_MODE");
-        property_set("ro.telephony.default_network", "10");
-        property_set("ro.config.full_network_support", "true");
-        property_set("persist.radio.modem.cap", "899BD");
-        property_set("rild.libpath", "/vendor/lib64/libvia-ril.so");
-        property_set("rild.libpath1", "/vendor/lib64/libbalong-ril.so");
-        property_set("rild.libpath2", "/vendor/lib64/libbalong-ril-1.so");
-        property_set("rild.libpath3", "/vendor/lib64/libbalong-ril-2.so");
-        property_set("ro.build.description", "KNT-TL10-user 7.0 HUAWEIKNT-TL10 C00B385 release-keys");
-        property_set("ro.build.fingerprint", "HONOR/KNT-TL10/HWKNT:7.0/HUAWEIKNT-TL10/C00B385:user/release-keys");
-    }
-
-    else if (buf.find("KNT-AL10") != std::string::npos) {
-        property_set("ro.product.model", "KNT-AL10");
-        property_set("ro.radio.vsim_support", "true");
-        property_set("ro.config.client_number", "5");
-        property_set("ro.config.modem_number", "4");
-        property_set("ro.config.hw_dsda", "true");
+	property_set("persist.radio.nv_match_by_card", "2");
         property_set("persist.dsds.enabled", "true");
         property_set("persist.radio.multisim.config", "dsda");
         property_set("ro.config.hw_device_mode", "clg_mode");
@@ -125,6 +95,35 @@ void init_target_properties()
         property_set("rild.libpath1", "/vendor/lib64/libbalong-ril.so");
         property_set("rild.libpath2", "/vendor/lib64/libbalong-ril-1.so");
         property_set("rild.libpath3", "/vendor/lib64/libbalong-ril-2.so");
+        property_set("ro.build.description", "KNT-TL10-user 7.0 HUAWEIKNT-TL10 C00B385 release-keys");
+        property_set("ro.build.fingerprint", "HONOR/KNT-TL10/HWKNT:7.0/HUAWEIKNT-TL10/C00B385:user/release-keys");
+    }
+    else if (buf.find("KNT-AL10") != std::string::npos) {
+        property_set("ro.product.model", "KNT-AL10");
+        property_set("ro.radio.vsim_support", "true");
+        property_set("ro.config.client_number", "5");
+        property_set("ro.config.modem_number", "4");
+        property_set("ro.config.modem_number1", "3");
+        property_set("ro.config.hw_dsda", "true");
+        property_set("persist.dsds.enabled", "true");
+        property_set("persist.radio.multisim.config", "dsda");
+        property_set("ro.config.hw_device_mode", "clg_mode");
+        property_set("ro.config.hw_device_mode1", "ulg_mode");
+        property_set("rild.libargs", "-d /dev/ttyAMA0");
+        property_set("rild.libargs1", "-m modem0");
+        property_set("rild.libargs2", "-m modem1");
+        property_set("rild.libargs3", "-m modem2");
+        property_set("ro.config.dsds_mode", "cdma_gsm");
+        property_set("ro.config.dsds_mode1", "umts_gsm");
+        property_set("ro.config.default_commril_mode", "CLG_MODE");
+        property_set("ro.config.default_commril_mode1", "ULG_MODE");
+        property_set("ro.telephony.default_network", "22");
+        property_set("ro.config.full_network_support", "true");
+        property_set("persist.radio.modem.cap", "899BD");
+        property_set("rild.libpath", "/vendor/lib64/libvia-ril.so");
+        property_set("rild.libpath1", "/vendor/lib64/libbalong-ril.so");
+        property_set("rild.libpath2", "/vendor/lib64/libbalong-ril-1.so");
+        property_set("rild.libpath3", "/vendor/lib64/libbalong-ril-2.so");
         property_set("ro.build.description", "KNT-AL10-user 7.0 HUAWEIKNT-AL10 C00B385 release-keys");
         property_set("ro.build.fingerprint", "HONOR/KNT-AL10/HWKNT:7.0/HUAWEIKNT-AL10/C00B385:user/release-keys");
     }
@@ -132,18 +131,19 @@ void init_target_properties()
         property_set("ro.product.model", "KNT-AL20");
         property_set("ro.radio.vsim_support", "true");
         property_set("ro.config.client_number", "5");
-        property_set("ro.config.modem_number", "3");
+        property_set("ro.config.modem_number", "4");
+		property_set("persist.radio.nv_match_by_card", "2");
         property_set("ro.config.hw_dsda", "true");
         property_set("persist.dsds.enabled", "true");
         property_set("persist.radio.multisim.config", "dsda");
         property_set("ro.config.hw_device_mode", "clg_mode");
-        property_set("rild.libargs", "-d /dev/viacomm_cmux");
+        property_set("rild.libargs", "-d /dev/ttyHwgs0");
         property_set("rild.libargs1", "-m modem0");
         property_set("rild.libargs2", "-m modem1");
         property_set("rild.libargs3", "-m modem2");
         property_set("ro.config.dsds_mode", "cdma_gsm");
         property_set("ro.config.default_commril_mode", "CLG_MODE");
-        property_set("ro.telephony.default_network", "10");
+        property_set("ro.telephony.default_network", "22");
         property_set("ro.config.full_network_support", "true");
         property_set("persist.radio.modem.cap", "899BD");
         property_set("rild.libpath", "/vendor/lib64/libvia-ril.so");
